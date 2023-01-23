@@ -13,7 +13,8 @@ class CurrencyStoreService {
 }
 
 extension CurrencyStoreService {
-    func add(base: String, baseName: String, secondary: String, secondaryName: String) {
+    @discardableResult
+    func add(base: String, baseName: String, secondary: String, secondaryName: String) -> CurrencyPair {
         let object = CurrencyPair(context: managedObjectContext)
         object.base = base
         object.baseName = baseName
@@ -21,6 +22,7 @@ extension CurrencyStoreService {
         object.secondaryName = secondaryName
         object.timestamp = Date()
         coreDataStack.saveContext(managedObjectContext)
+        return object
     }
     
     func add(symbols: [String: String]) {
@@ -56,9 +58,9 @@ extension CurrencyStoreService {
         return []
     }
     
-    func delete(pair: CurrencyPairDTO) throws {
+    func delete(base: String, secondary: String) {
         let fetchRequest = CurrencyPair.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "base = %@ AND secondary = %@", pair.base, pair.secondary)
+        fetchRequest.predicate = NSPredicate(format: "base = %@ AND secondary = %@", base, secondary)
         do {
             let objects = try managedObjectContext.fetch(fetchRequest)
             for object in objects {

@@ -6,10 +6,10 @@ import CoreData
 class CurrencyStoreServiceTests: XCTestCase {
 
     var storeService: CurrencyStoreService!
-    var coreDataStack: TestCoreDataStack!
+    var coreDataStack: CoreDataStackMock!
     
     override func setUpWithError() throws {
-        coreDataStack = TestCoreDataStack()
+        coreDataStack = CoreDataStackMock()
         storeService = CurrencyStoreService(managedObjectContext: coreDataStack.mainContext,
                                             coreDataStack: coreDataStack)
     }
@@ -33,6 +33,40 @@ class CurrencyStoreServiceTests: XCTestCase {
         XCTAssertNotNil(symbol)
         XCTAssertEqual(symbol?.abbreviation, "EUR")
         XCTAssertEqual(symbol?.name, "Euro")
+    }
+    
+    func testFetchSymbolsInAlphabeticalOrder() {
+        let symbolsDict = [
+            "CYN": "Chinese Yuan",
+            "AED": "United Arab Dirham",
+            "BYR": "Belarusian Ruble"
+        ]
+        storeService.add(symbols: symbolsDict)
+        let symbols = storeService.fetchSymbols()
+        
+        XCTAssertEqual(symbols.count, symbolsDict.count)
+        let firstExpectedSymbol = symbols.first(where: { $0.abbreviation == "AED" })
+        let lastExpectedSymbol = symbols.first(where: { $0.abbreviation == "CYN" })
+        XCTAssertNotNil(firstExpectedSymbol)
+        XCTAssertNotNil(lastExpectedSymbol)
+        XCTAssertEqual(firstExpectedSymbol?.abbreviation, "AED")
+        XCTAssertEqual(lastExpectedSymbol?.abbreviation, "CYN")
+    }
+    
+    func testFetchCurrencyPairsWhereLastAddedShouldBeFirst() {
+        let firstPair = storeService.add(base: "EUR", baseName: "Euro",
+                                            secondary: "NZD", secondaryName: "New Zealand Dollar")
+        let secondPair = storeService.add(base: "AED", baseName: "United Arab Dirham",
+                                            secondary: "EUR", secondaryName: "Euro")
+        let thirdPair = storeService.add(base: "BYR", baseName: "Euro",
+                                         secondary: "NZD", secondaryName: "Belarusian Ruble")
+
+        let pairs = storeService.fetchPairs()
+        
+        XCTAssertTrue(pairs.count == 3)
+        XCTAssertEqual(pairs.first?.base, thirdPair.base)
+        XCTAssertEqual(pairs[1].base, secondPair.base)
+        XCTAssertEqual(pairs[2].base, firstPair.base)
     }
     
     func testDeleteCurrencyPair() {
@@ -76,7 +110,7 @@ class CurrencyStoreServiceTests: XCTestCase {
             XCTAssertNotNil(pair)
         }
         
-        waitForExpectations(timeout: 10) { error in
+        waitForExpectations(timeout: 2) { error in
             XCTAssertNil(error, "Couldn't save data")
         }
         

@@ -2,22 +2,7 @@
 import CoreData
 import UIKit
 
-//protocol PersistenceServiceProtocol: AnyObject {
-//    func fetchCurrencySymbols() throws -> [CurrencySymbol]
-//    func fetchCurrencyPairs() throws -> [CurrencyPair]
-//    func save(symbols: [CurrencySymbolDTO]) throws
-//    func save(pairs: [CurrencyPairDTO]) throws
-//    func delete(pair: CurrencyPairDTO) throws
-//}
-
-//enum PersistenceError: Error {
-//    case entityNotFound
-//    case unableToSave
-//    case unableToFetch
-//    case unableToDelete
-//}
-
-final class CoreDataStack {
+class CoreDataStack {
 
     static let modelName = "CurrencyRate"
     

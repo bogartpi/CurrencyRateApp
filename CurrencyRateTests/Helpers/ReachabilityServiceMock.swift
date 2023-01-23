@@ -1,8 +1,11 @@
-//
-//  ReachabilityServiceMock.swift
-//  CurrencyRateTests
-//
-//  Created by Pavel Bogart on 23.01.2023.
-//
 
 import Foundation
+@testable import CurrencyRate
+
+final class ReachabilityServiceMock: ReachabilityServiceProtocol {
+    var isConnected = true
+    
+    init(isConnected: Bool) {
+        self.isConnected = isConnected
+    }
+}

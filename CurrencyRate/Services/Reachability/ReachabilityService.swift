@@ -5,7 +5,7 @@ protocol ReachabilityServiceProtocol: AnyObject {
     var isConnected: Bool { get }
 }
 
-final class ReachabilityService {
+final class ReachabilityService: ReachabilityServiceProtocol {
     
     var isConnected: Bool = true
     private let monitor = NWPathMonitor()
@@ -15,18 +15,16 @@ final class ReachabilityService {
     
     private init() {
         monitor.start(queue: queue)
+        updateConnectionStatus()
     }
     
-    func startMonitoring() {
+    func updateConnectionStatus(handler: ((Bool) -> Void)? = nil) {
         monitor.pathUpdateHandler = { [weak self] path in
-            self?.updateConnectionStatus(path: path)
-        }
-    }
-    
-    private func updateConnectionStatus(path: NWPath) {
-        let newConnectionStatus = path.status == .satisfied
-        if isConnected != newConnectionStatus {
-            self.isConnected = newConnectionStatus
+            guard let self = self else { return }
+            self.isConnected = path.status == .satisfied
+            if let handler = handler {
+                handler(self.isConnected)
+            }
         }
     }
 }
