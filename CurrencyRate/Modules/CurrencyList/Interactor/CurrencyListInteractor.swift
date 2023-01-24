@@ -7,7 +7,9 @@ final class CurrencyListInteractor {
     private let storeService: CurrencyStoreService
     private let reachabilityService: ReachabilityServiceProtocol
     private let dispatchGroup = DispatchGroup()
-    private let dispatchQueue = DispatchQueue(label: "com.currencyapp.downloading")
+    private let dispatchQueue = DispatchQueue(label: "com.currencyapp.downloading",
+                                              qos: .userInitiated,
+                                              attributes: .concurrent)
     private let constants = Constants.CurrencyList.self
     private(set) var currencyPairs: [CurrencyPairDTO] = []
     private(set) var currencySymbols: [CurrencySymbolDTO] = []
@@ -78,7 +80,7 @@ extension CurrencyListInteractor: CurrencyListPresenterToInteractorProtocol {
             return
         }
         
-        dispatchQueue.async(group: dispatchGroup, qos: .userInitiated) { [weak self] in
+        dispatchQueue.async(group: dispatchGroup) { [weak self] in
             guard let self = self else { return }
             self.currencyPairs.forEach { pair in
                 self.dispatchGroup.enter()
@@ -108,15 +110,17 @@ extension CurrencyListInteractor: CurrencyListPresenterToInteractorProtocol {
     }
     
     func getCurrencyRateForAddedPair(_ pair: CurrencyPairDTO) {
-        remoteService.fetchCurrencyRate(base: pair.base, symbols: pair.secondary) { [weak self] response, error in
-            guard let self = self else { return }
-            guard let currencyPair = self.configureCurrencyPairs(localPair: pair, response: response).first else {
-                return
-            }
-            self.currencyPairs.insert(currencyPair, at: 0)
-            self.presenter?.fetchedAddedCurrencyPair(currencyPair)
-            if let error = error {
-                self.presenter?.networkErrorThrown(error)
+        dispatchQueue.async {
+            self.remoteService.fetchCurrencyRate(base: pair.base, symbols: pair.secondary) { [weak self] response, error in
+                guard let self = self else { return }
+                guard let currencyPair = self.configureCurrencyPairs(localPair: pair, response: response).first else {
+                    return
+                }
+                self.currencyPairs.insert(currencyPair, at: 0)
+                self.presenter?.fetchedAddedCurrencyPair(currencyPair)
+                if let error = error {
+                    self.presenter?.networkErrorThrown(error)
+                }
             }
         }
     }
