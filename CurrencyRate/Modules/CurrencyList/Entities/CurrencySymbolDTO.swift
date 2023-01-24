@@ -1,7 +1,7 @@
 
 import Foundation
 
-struct CurrencySymbolDTO {
+struct CurrencySymbolDTO: Hashable {
     let abbreviation: String
     let name: String
 }

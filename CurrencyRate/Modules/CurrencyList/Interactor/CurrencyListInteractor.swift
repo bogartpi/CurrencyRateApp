@@ -78,7 +78,7 @@ extension CurrencyListInteractor: CurrencyListPresenterToInteractorProtocol {
             return
         }
         
-        dispatchQueue.async(group: dispatchGroup, qos: .background) { [weak self] in
+        dispatchQueue.async(group: dispatchGroup, qos: .userInitiated) { [weak self] in
             guard let self = self else { return }
             self.currencyPairs.forEach { pair in
                 self.dispatchGroup.enter()
